@@ -1,0 +1,29 @@
+{
+    "name": "ccadb-pem",
+    "version": "0.1.0",
+    "description": "Exports CADDB certificates as .pem files",
+    "author": {
+        "name": "Tiago Dias",
+        "email": "tiago@tdias.pt",
+        "url": "https://tdias.pt"
+    },
+    "license": "AGPL-3.0-only",
+    "keywords": [
+        "ccadb",
+        "pem",
+        "certificates",
+        "ca-certificates"
+    ],
+    "type": "module",
+    "main": "src/main.ts",
+    "scripts": {
+        "generate": "node src/main.ts"
+    },
+    "devDependencies": {
+        "@types/node": "^26.1.1",
+        "typescript": "^6.0.3"
+    },
+    "dependencies": {
+        "csv-parse": "^7.0.1"
+    }
+}
