@@ -1,8 +1,9 @@
-import { type CARecord } from "./types.ts";
-import { parseZonedDate } from "./parse.ts";
 import * as fs from "node:fs";
 import path from "node:path";
+import { type CARecord } from "./types.ts";
+import { parseZonedDate } from "./parse.ts";
 import { fetchMetadata, fetchPEMs } from "./fetch.ts";
+import { Eta } from "eta";
 
 const OUTPUT_DIR = "output";
 
@@ -12,6 +13,13 @@ const now = Temporal.Now.zonedDateTimeISO("GMT");
 const isExpired: Filter = (r) => {
   const date = parseZonedDate(r["Valid To (GMT)"], "GMT");
   return Temporal.ZonedDateTime.compare(date, now) === -1;
+};
+
+const isRevoked: Filter = (r) => {
+  return (
+    r["Certificate Record Type"] == "Intermediate Certificate" &&
+    r["Revocation Status"] !== "Not Revoked"
+  );
 };
 
 const isTrusted = (
@@ -31,6 +39,22 @@ const TRUST_FILTERS: Array<{
   filter: (r: CARecord) => boolean;
 }> = [
   {
+    name: "apple",
+    filter: (r) => isTrusted(r["Apple Status"]),
+  },
+  {
+    name: "chrome",
+    filter: (r) => isTrusted(r["Chrome Status"]),
+  },
+  {
+    name: "microsoft",
+    filter: (r) => isTrusted(r["Microsoft Status"]),
+  },
+  {
+    name: "mozilla",
+    filter: (r) => isTrusted(r["Mozilla Status"]),
+  },
+  {
     name: "any",
     filter: (r) =>
       isTrusted(r["Apple Status"]) ||
@@ -47,20 +71,8 @@ const TRUST_FILTERS: Array<{
       isTrusted(r["Mozilla Status"]),
   },
   {
-    name: "apple",
-    filter: (r) => isTrusted(r["Apple Status"]),
-  },
-  {
-    name: "chrome",
-    filter: (r) => isTrusted(r["Chrome Status"]),
-  },
-  {
-    name: "microsoft",
-    filter: (r) => isTrusted(r["Microsoft Status"]),
-  },
-  {
-    name: "mozilla",
-    filter: (r) => isTrusted(r["Mozilla Status"]),
+    name: "notrust",
+    filter: (r) => true,
   },
 ];
 
@@ -69,10 +81,6 @@ const OUTPUT_FILTERS: Array<{
   filter: (r: CARecord) => boolean;
 }> = TRUST_FILTERS.flatMap((f) => {
   return [
-    {
-      name: `${f.name}-all`,
-      filter: (r) => f.filter(r),
-    },
     {
       name: `${f.name}-root`,
       filter: (r) =>
@@ -83,6 +91,10 @@ const OUTPUT_FILTERS: Array<{
       filter: (r) =>
         f.filter(r) &&
         r["Certificate Record Type"] === "Intermediate Certificate",
+    },
+    {
+      name: `${f.name}-both`,
+      filter: (r) => f.filter(r),
     },
   ];
 });
@@ -101,31 +113,38 @@ async function main() {
   console.log("Opening output files");
   const files = Object.fromEntries(
     await Promise.all(
-      OUTPUT_FILTERS.map(
-        async (f) =>
-          [
-            f.name,
-            {
-              fh: await fs.promises.open(
-                path.join(OUTPUT_DIR, `${f.name}.pem`),
-                "ax",
-              ),
-              count: 0,
+      OUTPUT_FILTERS.map(async (f) => {
+        const filename = `${f.name}.pem`;
+        const fullPath = path.join(OUTPUT_DIR, filename);
+
+        return [
+          f.name,
+          {
+            filename,
+            counts: {
+              root: 0,
+              intermediate: 0,
             },
-          ] as [
-            string,
-            {
-              fh: fs.promises.FileHandle;
-              count: number;
-            },
-          ],
-      ),
+            fh: await fs.promises.open(fullPath, "ax"),
+          },
+        ] as [
+          string,
+          {
+            filename: string;
+            counts: {
+              root: number;
+              intermediate: number;
+            };
+            fh: fs.promises.FileHandle;
+          },
+        ];
+      }),
     ),
   );
 
   console.log("Starting output");
   for await (const record of fetchMetadata()) {
-    if (isExpired(record)) {
+    if (isRevoked(record) || isExpired(record)) {
       continue;
     }
 
@@ -136,24 +155,45 @@ async function main() {
         const pem = fingerprints[fingerprint];
 
         if (!pem) {
-          throw new Error(`Certificate not found: ${fingerprint}`);
+          console.warn(`[WARNING] Certificate not found: ${fingerprint}`);
+          console.debug(
+            `Certificate not found: ${fingerprint}. ${JSON.stringify(record, null, 2)}`,
+          );
+          continue;
         }
 
         await file.fh.write(`${record["Certificate Name"]} (${fingerprint})\n`);
         await file.fh.write(`${pem}\n`);
-        file.count += 1;
+
+        if (record["Certificate Record Type"] === "Root Certificate") {
+          file.counts.root += 1;
+        } else {
+          file.counts.intermediate += 1;
+        }
       }
     }
   }
 
-  const nameColumnLength =
-    Object.keys(files).reduce((acc, name) => Math.max(acc, name.length), 0) + 1;
+  console.log("Generating index.html");
+  const now = Temporal.Now.zonedDateTimeISO("UTC");
 
-  console.log("--- results ---");
-  for (const [name, file] of Object.entries(files)) {
-    await file.fh.close();
-    console.log(`${name.padEnd(nameColumnLength, " ")}${file.count}`);
-  }
+  const eta = new Eta({
+    views: path.join(import.meta.dirname, "..", "templates"),
+  });
+
+  const indexHTML = await eta.renderAsync("./index", {
+    now: {
+      datetime: now.toString({ timeZoneName: "never" }),
+      label: `${now.toPlainDate().toString()} ${now.toPlainTime().toString()} ${now.timeZoneId}`,
+    },
+    files: Object.entries(files).map(([name, { counts, filename }]) => ({
+      name,
+      filename,
+      counts,
+    })),
+  });
+
+  await fs.promises.writeFile(path.join(OUTPUT_DIR, "index.html"), indexHTML);
 }
 
 main();

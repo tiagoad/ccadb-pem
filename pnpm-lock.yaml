@@ -11,6 +11,9 @@ importers:
       csv-parse:
         specifier: ^7.0.1
         version: 7.0.1
+      eta:
+        specifier: ^4.6.0
+        version: 4.6.0
     devDependencies:
       '@types/node':
         specifier: ^26.1.1
@@ -27,6 +30,10 @@ packages:
   csv-parse@7.0.1:
     resolution: {integrity: sha512-+2z7Ar0APQ7Uu6fX4cn+pitRmxjZ1WPBcGmZFKmA74FCyi7Et/XZx8cjNQ5CjbZ4HCOxXCOpRBYvYH08Qa003A==}
 
+  eta@4.6.0:
+    resolution: {integrity: sha512-lW6is4T1NFOYnmqGZIfvixqj7A7sSvScF+DN8EK6K58xI5MZ5UvYe0GjopxOXQtZvUn4eDdVuZ8XSoYWTMEKwA==}
+    engines: {node: '>=20'}
+
   typescript@6.0.3:
     resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
     engines: {node: '>=14.17'}
@@ -42,6 +49,8 @@ snapshots:
       undici-types: 8.3.0
 
   csv-parse@7.0.1: {}
+
+  eta@4.6.0: {}
 
   typescript@6.0.3: {}
 

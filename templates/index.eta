@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ccadb-pem</title>
+    <style>
+        * {
+            font-family: system-ui, sans-serif;
+        }
+
+        dl, #certs {
+            margin-left: 1em;
+        }
+        
+        dt {
+            font-weight: bold;
+        }
+        
+        dd {
+            margin: 0;
+            margin-bottom: .5em;
+        }
+
+        dd:last-of-type {
+            margin-bottom: 0;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background: black;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        td, th {
+            text-align: left;
+            padding: 4px;
+            min-width: 7em;
+            border: 1px solid black;
+        }
+
+        #certs a {
+            text-decoration: none;
+        }
+        
+        #certs td:nth-child(2),
+        #certs th:nth-child(2) {
+            text-align: center;
+        }
+    </style>
+  </head>
+  <body>
+    <h1>CCADB .pem</h1>
+    <p>
+        Updated: 
+        <time 
+            datetime="<%= it.now.toInstant().toString() %>">
+            <%= it.now.toPlainDateTime().toString().slice(0, 19).split("T").join(" ") %> <%= it.now.timeZoneId %>
+        </time>
+    </p>
+    <p>
+        These .pem files contain CA certificates extracted from the 
+        <a href="https://www.ccadb.org/">Common CA Database</a> 
+        using <a href="https://github.com/tiagoad/ccadb-pem">ccadb-pem</a>.</p>
+    <table id="certs">
+        <thead>
+            <tr>
+                <th>File</th>
+                <th>Certificates</th>
+            </tr>
+        </thead>
+        <tbody>
+<% it.files.forEach(function(file){ %>
+            <tr>
+                <td><a href="<%= file.filename %>"><%= file.filename %></a></td>
+                <td><%= file.counts.root + file.counts.intermediate %></td>
+            </tr>
+<% }) %>
+        </tbody>
+    </table>
+    <p>The first part of the filename determines who trusts a given certificate:</p>
+    <dl>
+        <dt>apple</dt>
+        <dd>Trusted by Apple</dd>
+
+        <dt>chrome</dt>
+        <dd>Trusted by Google Chrome</dd>
+
+        <dt>microsoft</dt>
+        <dd>Trusted by Microsoft</dd>
+
+        <dt>mozilla</dt>
+        <dd>Trusted by Mozilla</dd>
+
+        <dt>all</dt>
+        <dd>Trusted by all of the above</dd>
+        
+        <dt>any</dt>
+        <dd>Trusted by at least one of the above</dd>
+
+        <dt>notrust</dt>
+        <dd>All certificates in the DB are included, including ones not trusted by the above entities (excluding revoked certificates)</dd>
+    </dl>
+    <p>The second part of the filename determines the types of certificates included:</p>
+    <dl>
+        <dt>root</dt>
+        <dd>Root Certificates only</dd>
+
+        <dt>intermediate</dt>
+        <dd>Intermediate Certificates only</dd>
+
+        <dt>both</dt>
+        <dd>Both types</dd>
+    </dl>
+  </body>
+</html>

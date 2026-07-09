@@ -1,6 +1,6 @@
 {
     "name": "ccadb-pem",
-    "version": "0.1.0",
+    "version": "0.2.1",
     "description": "Exports CADDB certificates as .pem files",
     "author": {
         "name": "Tiago Dias",
@@ -24,6 +24,7 @@
         "typescript": "^6.0.3"
     },
     "dependencies": {
-        "csv-parse": "^7.0.1"
+        "csv-parse": "^7.0.1",
+        "eta": "^4.6.0"
     }
 }

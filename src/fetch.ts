@@ -1,6 +1,5 @@
 import { parse } from "csv-parse/stream";
 import type { CARecord, PEMRecord } from "./types.ts";
-import crypto from "node:crypto";
 
 const RECORDS_URL =
   "https://ccadb.my.salesforce-sites.com/ccadb/AllCertificateRecordsCSVFormatV5";
@@ -44,14 +43,6 @@ export async function fetchPEMs() {
             "-----BEGIN CERTIFICATE-----\n",
           )
           .replace("-----END CERTIFICATE-----", "\n-----END CERTIFICATE-----");
-
-        try {
-          const cert = new crypto.X509Certificate(certificate);
-        } catch (err) {
-          console.log("Error", err);
-          console.log(certificate, record);
-          continue;
-        }
 
         certs[fingerprint] = certificate;
       }
