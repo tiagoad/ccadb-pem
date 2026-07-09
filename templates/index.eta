@@ -3,7 +3,13 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ccadb-pem</title>
+    <title>ccadb.pem</title>
+
+    <meta property="og:title" content="ccadb.pem" />
+    <meta property="og:type" content="article" />
+    <meta property="og:description" content="Common CA Database (CCADB) root and intermediate certificates as ready to use .pem files." />
+    <meta property="article:modified_time" content="<%= it.now.datetime %>" />
+    
     <style>
         * {
             font-family: system-ui, sans-serif;
@@ -54,12 +60,15 @@
     </style>
   </head>
   <body>
-    <h1>CCADB .pem</h1>
-    <p>Updated: <time datetime="<%= it.now.datetime %>"><%= it.now.label %></time></p>
+    <h1>ccadb.pem</h1>
     <p>
         These .pem files contain CA certificates extracted from the 
         <a href="https://www.ccadb.org/">Common CA Database</a> 
-        using <a href="https://github.com/tiagoad/ccadb-pem">ccadb-pem</a>.</p>
+        using <a href="https://github.com/tiagoad/ccadb-pem">ccadb-pem</a>.
+    </p>
+    <p>
+        Files are generated daily. Last update: <time datetime="<%= it.now.datetime %>"><%= it.now.label %></time>
+    </p>
     <table id="certs">
         <thead>
             <tr>
