@@ -55,13 +55,7 @@
   </head>
   <body>
     <h1>CCADB .pem</h1>
-    <p>
-        Updated: 
-        <time 
-            datetime="<%= it.now.toInstant().toString() %>">
-            <%= it.now.toPlainDateTime().toString().slice(0, 19).split("T").join(" ") %> <%= it.now.timeZoneId %>
-        </time>
-    </p>
+    <p>Updated: <time datetime="<%= it.now.datetime %>"><%= it.now.label %></time></p>
     <p>
         These .pem files contain CA certificates extracted from the 
         <a href="https://www.ccadb.org/">Common CA Database</a> 

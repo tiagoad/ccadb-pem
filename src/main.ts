@@ -183,8 +183,13 @@ async function main() {
 
   const indexHTML = await eta.renderAsync("./index", {
     now: {
-      datetime: now.toString({ timeZoneName: "never" }),
-      label: `${now.toPlainDate().toString()} ${now.toPlainTime().toString()} ${now.timeZoneId}`,
+      datetime: now.toString({
+        timeZoneName: "never",
+        fractionalSecondDigits: 3,
+      }),
+      label: `${now.toPlainDate().toString()} ${now.toPlainTime().toString({
+        smallestUnit: "seconds",
+      })} ${now.timeZoneId}`,
     },
     files: Object.entries(files).map(([name, { counts, filename }]) => ({
       name,
